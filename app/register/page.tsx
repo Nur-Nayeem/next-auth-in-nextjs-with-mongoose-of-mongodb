@@ -1,5 +1,6 @@
 "use client";
 import axios from "axios";
+import { signIn } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React from "react";
@@ -28,7 +29,6 @@ const Register = () => {
       });
     e.currentTarget.reset();
   };
-  const handleGoogleSignIn = () => {};
 
   return (
     <section className="h-[90vh] flex justify-center items-center">
@@ -89,7 +89,11 @@ const Register = () => {
           </div>
 
           <button
-            onClick={handleGoogleSignIn}
+            onClick={() =>
+              signIn("google", {
+                callbackUrl: "/",
+              })
+            }
             className="btn bg-white text-black border-[#e5e5e5] w-full rounded-lg h-12 text-lg"
           >
             <svg

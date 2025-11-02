@@ -29,8 +29,6 @@ const Login = () => {
     e.currentTarget.reset();
   };
 
-  const handleGoogleSignIn = () => {};
-
   return (
     <section className="h-[90vh] flex justify-center items-center">
       <div className="mx-auto bg-white p-10 space-y-3.5">
@@ -80,7 +78,11 @@ const Login = () => {
           </div>
 
           <button
-            onClick={handleGoogleSignIn}
+            onClick={() =>
+              signIn("google", {
+                callbackUrl: "/",
+              })
+            }
             className="btn bg-white text-black border-[#e5e5e5] w-full rounded-lg h-12 text-lg"
           >
             <svg
