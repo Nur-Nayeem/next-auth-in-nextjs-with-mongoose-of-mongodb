@@ -2,10 +2,11 @@
 import { signIn } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import React from "react";
+import React, { useState } from "react";
 
 const Login = () => {
   const router = useRouter();
+  const [loading, setLoading] = useState(false);
 
   const handleLoginAccount = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -13,6 +14,7 @@ const Login = () => {
     const email = formData.get("email") as string;
     const password = formData.get("password") as string;
     console.log(email, password);
+    setLoading(true);
 
     signIn("credentials", {
       email,
@@ -21,12 +23,14 @@ const Login = () => {
     })
       .then(() => {
         console.log("success");
+        setLoading(false);
+        e.currentTarget.reset();
         router.push("/");
       })
       .catch((err) => {
         console.log(err);
+        setLoading(false);
       });
-    e.currentTarget.reset();
   };
 
   return (
@@ -68,7 +72,7 @@ const Login = () => {
             </div>
 
             <button className="btn bg-primary text-base-100 rounded-lg text-lg h-12">
-              Sign In
+              {loading ? "loading..." : " Sign In"}
             </button>
           </form>
           <div className="flex items-center justify-between my-5">

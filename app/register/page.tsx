@@ -3,10 +3,11 @@ import axios from "axios";
 import { signIn } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import React from "react";
+import React, { useState } from "react";
 
 const Register = () => {
   const router = useRouter();
+  const [loading, setLoading] = useState(false);
   const handleCreateAccount = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
@@ -14,7 +15,7 @@ const Register = () => {
     const email = formData.get("email") as string;
     const password = formData.get("password") as string;
     console.log(name, email, password);
-
+    setLoading(true);
     axios
       .post("/api/auth/register", {
         name,
@@ -22,12 +23,14 @@ const Register = () => {
         password,
       })
       .then(() => {
+        setLoading(false);
+        e.currentTarget.reset();
         router.push("/login");
       })
       .catch((error) => {
         console.log(error);
+        setLoading(false);
       });
-    e.currentTarget.reset();
   };
 
   return (
@@ -79,7 +82,7 @@ const Register = () => {
             </div>
 
             <button className="btn bg-primary text-base-100 rounded-lg text-lg h-12">
-              Register
+              {loading ? "loading..." : "Register"}
             </button>
           </form>
           <div className="flex items-center justify-between my-5">
