@@ -10,6 +10,7 @@ const Login = () => {
 
   const handleLoginAccount = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    e.persist();
     const formData = new FormData(e.currentTarget);
     const email = formData.get("email") as string;
     const password = formData.get("password") as string;
