@@ -1,6 +1,6 @@
 "use client";
 import { userDataContext } from "@/context/UserContext";
-import { signOut, useSession } from "next-auth/react";
+import { signOut } from "next-auth/react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useContext, useState } from "react";
@@ -20,7 +20,7 @@ export default function Home() {
     }
   };
 
-  if (!data) {
+  if (loading) {
     return (
       <div className="h-[90vh] flex justify-center items-center bg-base-200">
         LOADING...
