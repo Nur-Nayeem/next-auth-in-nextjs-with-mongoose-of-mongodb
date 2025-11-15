@@ -30,7 +30,6 @@ const Login = () => {
         setLoading(false);
       } else if (result?.ok) {
         console.log("Login successful");
-        e.currentTarget.reset();
         router.push("/");
         router.refresh(); // Refresh to update session
       }

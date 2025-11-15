@@ -51,7 +51,6 @@ const Register = () => {
         setTimeout(() => router.push("/login"), 2000);
       } else if (signInResult?.ok) {
         console.log("Registration and login successful");
-        e.currentTarget.reset();
         router.push("/");
         router.refresh();
       }
