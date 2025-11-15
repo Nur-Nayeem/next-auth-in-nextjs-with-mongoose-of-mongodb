@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import ClientProvider from "@/ClientProvider";
+import UserContext from "@/context/UserContext";
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -15,7 +16,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <ClientProvider>{children}</ClientProvider>
+        <ClientProvider>
+          <UserContext>{children}</UserContext>
+        </ClientProvider>
       </body>
     </html>
   );
