@@ -1,43 +1,44 @@
 "use client";
-
 import { signIn } from "next-auth/react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import React, { useState } from "react";
 
 const Login = () => {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const handleLoginAccount = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-
-    const form = e.currentTarget;
-    const formData = new FormData(form);
-
+    const formData = new FormData(e.currentTarget);
     const email = formData.get("email") as string;
     const password = formData.get("password") as string;
 
     setLoading(true);
+    setError("");
 
-    const result = await signIn("credentials", {
-      email,
-      password,
-      redirect: false,
-    });
+    try {
+      const result = await signIn("credentials", {
+        email,
+        password,
+        redirect: false,
+      });
 
-    setLoading(false);
-    console.log("signIn result:", result);
-
-    if (result?.error) {
-      console.log("Login failed");
-      return;
+      if (result?.error) {
+        setError(result.error);
+        setLoading(false);
+      } else if (result?.ok) {
+        console.log("Login successful");
+        e.currentTarget.reset();
+        router.push("/");
+        router.refresh(); // Refresh to update session
+      }
+    } catch (err) {
+      console.log(err);
+      setError("Something went wrong");
+      setLoading(false);
     }
-
-    // ⭐ Fix for production: wait for session cookie to apply
-    setTimeout(() => {
-      router.push(result?.url || "/");
-    }, 200);
   };
 
   return (
@@ -45,50 +46,98 @@ const Login = () => {
       <div className="mx-auto bg-white p-10 space-y-3.5">
         <h3 className="text-center text-3xl font-semibold rounded-lg">Login</h3>
         <p className="text-center">
-          Dont have an account?{" "}
+          Dont have and account?{" "}
           <Link href={"/register"} className="text-primary">
             Register Now
           </Link>
         </p>
+        {error && (
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+            {error}
+          </div>
+        )}
+        <div>
+          <form
+            onSubmit={handleLoginAccount}
+            className="flex flex-col max-w-md sm:w-md gap-6"
+          >
+            <div className="flex flex-col space-y-1.5 ">
+              <label>Email</label>
+              <input
+                className="bg-base-200 p-2.5 rounded-lg 
+              outline-2 outline-gray-200 focus:outline-primary"
+                type="email"
+                name="email"
+                placeholder="Email"
+                required
+              />
+            </div>
+            <div className="flex flex-col space-y-1.5 ">
+              <label>Password</label>
+              <input
+                className="bg-base-200 p-2.5 rounded-lg outline-2 outline-gray-200 focus:outline-primary"
+                type="password"
+                name="password"
+                placeholder="Password"
+                required
+              />
+              <Link className="mt-1" href={"/"}>
+                Forgot Password?
+              </Link>
+            </div>
 
-        <form onSubmit={handleLoginAccount} className="space-y-6">
-          <div>
-            <label>Email</label>
-            <input
-              className="bg-base-200 p-2.5 rounded-lg"
-              type="email"
-              name="email"
-              required
-            />
+            <button
+              type="submit"
+              disabled={loading}
+              className="btn bg-primary text-base-100 rounded-lg text-lg h-12"
+            >
+              {loading ? "loading..." : " Sign In"}
+            </button>
+          </form>
+          <div className="flex items-center justify-between my-5">
+            <hr className="text-gray-300 w-[45%]" />
+            <span>OR</span>
+            <hr className="text-gray-300 w-[45%]" />
           </div>
 
-          <div>
-            <label>Password</label>
-            <input
-              className="bg-base-200 p-2.5 rounded-lg"
-              type="password"
-              name="password"
-              required
-            />
-          </div>
-
-          <button className="btn bg-primary text-base-100 rounded-lg h-12 w-full">
-            {loading ? "Loading..." : "Sign In"}
+          <button
+            onClick={() =>
+              signIn("google", {
+                callbackUrl: "/",
+              })
+            }
+            className="btn bg-white text-black border-[#e5e5e5] w-full rounded-lg h-12 text-lg"
+          >
+            <svg
+              aria-label="Google logo"
+              width="20"
+              height="20"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 512 512"
+            >
+              <g>
+                <path d="m0 0H512V512H0" fill="#fff"></path>
+                <path
+                  fill="#34a853"
+                  d="M153 292c30 82 118 95 171 60h62v48A192 192 0 0190 341"
+                ></path>
+                <path
+                  fill="#4285f4"
+                  d="m386 400a140 175 0 0053-179H260v74h102q-7 37-38 57"
+                ></path>
+                <path
+                  fill="#fbbc02"
+                  d="m90 341a208 200 0 010-171l63 49q-12 37 0 73"
+                ></path>
+                <path
+                  fill="#ea4335"
+                  d="m153 219c22-69 116-109 179-50l55-54c-78-75-230-72-297 55"
+                ></path>
+              </g>
+            </svg>
+            Login with Google
           </button>
-        </form>
-
-        <div className="flex items-center justify-between my-5">
-          <hr className="w-[45%]" />
-          <span>OR</span>
-          <hr className="w-[45%]" />
         </div>
-
-        <button
-          onClick={() => signIn("google", { callbackUrl: "/" })}
-          className="btn bg-white border w-full rounded-lg h-12 text-lg"
-        >
-          Login with Google
-        </button>
       </div>
     </section>
   );

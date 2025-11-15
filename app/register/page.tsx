@@ -1,5 +1,4 @@
 "use client";
-import axios from "axios";
 import { signIn } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -8,59 +7,95 @@ import React, { useState } from "react";
 const Register = () => {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const handleCreateAccount = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleRegisterAccount = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
     const name = formData.get("name") as string;
     const email = formData.get("email") as string;
     const password = formData.get("password") as string;
-    console.log(name, email, password);
+
     setLoading(true);
-    axios
-      .post("/api/auth/register", {
-        name,
+    setError("");
+
+    try {
+      const res = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ name, email, password }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.message || "Registration failed");
+        setLoading(false);
+        return;
+      }
+
+      // Auto sign in after successful registration
+      const signInResult = await signIn("credentials", {
         email,
         password,
-      })
-      .then(() => {
-        setLoading(false);
-        e.currentTarget.reset();
-        router.push("/login");
-      })
-      .catch((error) => {
-        console.log(error);
-        setLoading(false);
+        redirect: false,
       });
+
+      if (signInResult?.error) {
+        setError(
+          "Registration successful but login failed. Please login manually."
+        );
+        setLoading(false);
+        setTimeout(() => router.push("/login"), 2000);
+      } else if (signInResult?.ok) {
+        console.log("Registration and login successful");
+        e.currentTarget.reset();
+        router.push("/");
+        router.refresh();
+      }
+    } catch (err) {
+      console.log(err);
+      setError("Something went wrong");
+      setLoading(false);
+    }
   };
 
   return (
     <section className="h-[90vh] flex justify-center items-center">
-      <div className="mx-auto bg-white p-10 space-y-3.5 rounded-lg">
-        <h3 className="text-center text-3xl font-semibold">Register</h3>
+      <div className="mx-auto bg-white p-10 space-y-3.5">
+        <h3 className="text-center text-3xl font-semibold rounded-lg">
+          Register
+        </h3>
         <p className="text-center">
           Already have an account?{" "}
           <Link href={"/login"} className="text-primary">
             Login Now
           </Link>
         </p>
+        {error && (
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+            {error}
+          </div>
+        )}
         <div>
           <form
-            onSubmit={handleCreateAccount}
+            onSubmit={handleRegisterAccount}
             className="flex flex-col max-w-md sm:w-md gap-6"
           >
-            <div className="flex flex-col space-y-1.5 ">
+            <div className="flex flex-col space-y-1.5">
               <label>Name</label>
               <input
                 className="bg-base-200 p-2.5 rounded-lg 
               outline-2 outline-gray-200 focus:outline-primary"
                 type="text"
                 name="name"
-                placeholder="Name"
+                placeholder="Full Name"
                 required
               />
             </div>
-            <div className="flex flex-col space-y-1.5 ">
+            <div className="flex flex-col space-y-1.5">
               <label>Email</label>
               <input
                 className="bg-base-200 p-2.5 rounded-lg 
@@ -71,19 +106,24 @@ const Register = () => {
                 required
               />
             </div>
-            <div className="flex flex-col space-y-1.5 ">
+            <div className="flex flex-col space-y-1.5">
               <label>Password</label>
               <input
                 className="bg-base-200 p-2.5 rounded-lg outline-2 outline-gray-200 focus:outline-primary"
                 type="password"
                 name="password"
-                placeholder="Password"
+                placeholder="Password (min 6 characters)"
                 required
+                minLength={6}
               />
             </div>
 
-            <button className="btn bg-primary text-base-100 rounded-lg text-lg h-12">
-              {loading ? "loading..." : "Register"}
+            <button
+              type="submit"
+              disabled={loading}
+              className="btn bg-primary text-base-100 rounded-lg text-lg h-12"
+            >
+              {loading ? "loading..." : "Sign Up"}
             </button>
           </form>
           <div className="flex items-center justify-between my-5">
@@ -127,7 +167,7 @@ const Register = () => {
                 ></path>
               </g>
             </svg>
-            Login with Google
+            Register with Google
           </button>
         </div>
       </div>
