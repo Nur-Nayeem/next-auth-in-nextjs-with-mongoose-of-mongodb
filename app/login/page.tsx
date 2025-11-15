@@ -11,7 +11,7 @@ const Login = () => {
   const handleLoginAccount = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    const form = e.currentTarget; // save the form reference
+    const form = e.currentTarget;
     const formData = new FormData(form);
 
     const email = formData.get("email") as string;
@@ -19,7 +19,7 @@ const Login = () => {
 
     setLoading(true);
 
-    const res = await signIn("credentials", {
+    const result = await signIn("credentials", {
       email,
       password,
       redirect: false,
@@ -27,10 +27,17 @@ const Login = () => {
 
     setLoading(false);
 
-    if (!res?.error) {
-      form.reset();
-      router.push("/");
+    console.log("signIn result:", result);
+
+    if (result?.error) {
+      // ❌ login failed
+      console.log("Login failed:", result.error);
+      return; // STOP here → don’t redirect!
     }
+
+    // ✅ login success
+    form.reset();
+    router.push("/");
   };
 
   return (
