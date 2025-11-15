@@ -8,6 +8,7 @@ import React, { useState } from "react";
 const Register = () => {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+
   const handleCreateAccount = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);

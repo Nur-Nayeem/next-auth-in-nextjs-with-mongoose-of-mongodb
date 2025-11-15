@@ -8,30 +8,29 @@ const Login = () => {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
 
-  const handleLoginAccount = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleLoginAccount = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    e.persist();
-    const formData = new FormData(e.currentTarget);
+
+    const form = e.currentTarget; // save the form reference
+    const formData = new FormData(form);
+
     const email = formData.get("email") as string;
     const password = formData.get("password") as string;
-    console.log(email, password);
+
     setLoading(true);
 
-    signIn("credentials", {
+    const res = await signIn("credentials", {
       email,
       password,
       redirect: false,
-    })
-      .then(() => {
-        console.log("success");
-        setLoading(false);
-        e.currentTarget.reset();
-        router.push("/");
-      })
-      .catch((err) => {
-        console.log(err);
-        setLoading(false);
-      });
+    });
+
+    setLoading(false);
+
+    if (!res?.error) {
+      form.reset();
+      router.push("/");
+    }
   };
 
   return (
