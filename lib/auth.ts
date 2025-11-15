@@ -27,7 +27,7 @@ const authOptions: NextAuthOptions = {
         }
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {
-          throw new Error("Password is incorrect");
+          return null;
         }
         return {
           id: user._id,
