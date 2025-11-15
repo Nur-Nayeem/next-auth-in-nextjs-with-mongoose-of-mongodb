@@ -1,9 +1,9 @@
 import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
+import Google from "next-auth/providers/google";
 import connectDb from "./db";
 import User from "@/model/user.model";
 import bcrypt from "bcryptjs";
-import Google from "next-auth/providers/google";
 
 const authOptions: NextAuthOptions = {
   providers: [
@@ -13,26 +13,19 @@ const authOptions: NextAuthOptions = {
         email: { label: "Email", type: "text" },
         password: { label: "Password", type: "password" },
       },
+
       async authorize(credentials) {
         const email = credentials?.email;
         const password = credentials?.password;
 
-        if (!email || !password) {
-          return null;
-        }
+        if (!email || !password) return null;
 
         await connectDb();
         const user = await User.findOne({ email });
+        if (!user) return null;
 
-        if (!user) {
-          return null;
-        }
-
-        const isMatch = await bcrypt.compare(password, user.password);
-
-        if (!isMatch) {
-          return null;
-        }
+        const match = await bcrypt.compare(password, user.password);
+        if (!match) return null;
 
         return {
           id: user._id.toString(),
@@ -48,18 +41,21 @@ const authOptions: NextAuthOptions = {
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
     }),
   ],
+
   callbacks: {
     async signIn({ account, user }) {
-      if (account?.provider == "google") {
+      if (account?.provider === "google") {
         await connectDb();
-        let existUser = await User.findOne({ email: user?.email });
-        if (!existUser) {
-          existUser = await User.create({
+        let existing = await User.findOne({ email: user.email });
+
+        if (!existing) {
+          existing = await User.create({
             name: user.name,
             email: user.email,
           });
         }
-        user.id = existUser._id as string;
+
+        user.id = existing._id.toString();
       }
       return true;
     },
@@ -73,24 +69,25 @@ const authOptions: NextAuthOptions = {
       }
       return token;
     },
+
     session({ session, token }) {
-      if (session.user) {
-        session.user.id = token.id as string;
-        session.user.name = token.name;
-        session.user.email = token.email;
-        session.user.image = token.image as string;
-      }
+      session.user.id = token.id as string;
+      session.user.name = token.name;
+      session.user.email = token.email;
+      session.user.image = token.image as string;
       return session;
     },
   },
+
   session: {
     strategy: "jwt",
-    maxAge: 3 * 24 * 60 * 60 * 1000,
   },
+
   pages: {
     signIn: "/login",
     error: "/login",
   },
+
   secret: process.env.NEXTAUTH_SECRET,
 };
 
